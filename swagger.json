@@ -1,0 +1,74 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "2019-04-08T17:36:12Z",
+    "title": "Merchant Locations"
+  },
+  "host": "vcjfva6ugh.execute-api.us-west-2.amazonaws.com",
+  "basePath": "/dev",
+  "schemes": [
+    "https"
+  ],
+  "paths": {
+    "/api/v1/merchants/by-public-id/{public_id}": {
+      "get": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "public_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/Empty"
+            }
+          }
+        }
+      },
+      "x-permitted-scopes": "merchants:public:read"
+    },
+    "/api/v1/merchants/by-public-id/{public_id}/locations": {
+      "get": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "public_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "schema": {
+              "$ref": "#/definitions/Empty"
+            }
+          }
+        }
+      },
+      "x-permitted-scopes": "locations:public:read"
+    }
+  },
+  "definitions": {
+    "Empty": {
+      "type": "object",
+      "title": "Empty Schema"
+    }
+  }
+}

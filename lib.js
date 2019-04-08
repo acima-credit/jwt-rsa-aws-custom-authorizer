@@ -1,4 +1,6 @@
 require('dotenv').config({ silent: true });
+const _ = require('underscore');
+const swagger = require('swagger');
 
 const jwksClient = require('jwks-rsa');
 const jwt = require('jsonwebtoken');
@@ -35,6 +37,20 @@ const getToken = (params) => {
     return match[1];
 }
 
+const getPath = (params) => {
+    return params["path"];
+}
+
+const permittedScopesForPath = (path) => {
+    const paths = swagger["paths"];
+    return paths[path]["x-permitted-scopes"].split(":");
+}
+
+
+const containsScopes = (inbound, permitted) => {
+    return _.intersection(inbound, permitted).length > 0;
+}
+
 const jwtOptions = {
     audience: process.env.AUDIENCE,
     issuer: process.env.TOKEN_ISSUER
@@ -42,11 +58,21 @@ const jwtOptions = {
 
 module.exports.authenticate = (params) => {
     console.log(params);
+
     const token = getToken(params);
+    const path = getPath(params)
+    const permittedScopes = permittedScopesForPath(path);
 
     const decoded = jwt.decode(token, { complete: true });
     if (!decoded || !decoded.header || !decoded.header.kid) {
         throw new Error('invalid token');
+    }
+
+    const jwtScopes = scopesFromToken(decoded);
+
+    // check scopes
+    if (!containsScopes(jwtScopes, permittedScopes)) {
+        throw new Error('invalid access');
     }
 
     const client = jwksClient({
