@@ -1,6 +1,9 @@
 require('dotenv').config({ silent: true });
 const _ = require('underscore');
-const swagger = require('swagger');
+
+// Load swagger documentation
+var fs = require('fs');
+var swagger = JSON.parse(fs.readFileSync('swagger.json', 'utf8'));
 
 const jwksClient = require('jwks-rsa');
 const jwt = require('jsonwebtoken');
@@ -21,11 +24,11 @@ const getPolicyDocument = (effect, resource) => {
 
 // extract and return the Bearer Token from the Lambda event parameters
 const getToken = (params) => {
-    if (!params.type || params.type !== 'TOKEN') {
-        throw new Error('Expected "event.type" parameter to have value "TOKEN"');
-    }
+    //    if (!params.type || params.type !== 'TOKEN') {
+    //        throw new Error('Expected "event.type" parameter to have value "TOKEN"');
+    //    }
 
-    const tokenString = params.authorizationToken;
+    const tokenString = params.headers["Authorization"];
     if (!tokenString) {
         throw new Error('Expected "event.authorizationToken" parameter to be set');
     }
@@ -38,17 +41,29 @@ const getToken = (params) => {
 }
 
 const getPath = (params) => {
-    return params["path"];
+    return params.requestContext.resourcePath;
 }
 
 const permittedScopesForPath = (path) => {
     const paths = swagger["paths"];
-    return paths[path]["x-permitted-scopes"].split(":");
+    const matchedPath = paths[path];
+    if (!matchedPath) {
+        throw new Error("No matching resource path documented.")
+    }
+    const permitted = matchedPath["x-permitted-scopes"];
+    if (!permitted) {
+        throw new Error("No matching scopes for resource path.")
+    }
+    return _.flatten([permitted.split(" ")]);
 }
 
 
 const containsScopes = (inbound, permitted) => {
     return _.intersection(inbound, permitted).length > 0;
+}
+
+const scopesFromToken = (decoded) => {
+    return _.flatten([decoded.payload.scope.split(" ")]);
 }
 
 const jwtOptions = {
@@ -70,6 +85,10 @@ module.exports.authenticate = (params) => {
 
     const jwtScopes = scopesFromToken(decoded);
 
+    console.log("Passed:");
+    console.log(jwtScopes);
+    console.log("Permitted:");
+    console.log(permittedScopes);
     // check scopes
     if (!containsScopes(jwtScopes, permittedScopes)) {
         throw new Error('invalid access');

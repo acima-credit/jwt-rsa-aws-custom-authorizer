@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "2019-04-08T17:36:12Z",
+    "version": "2019-04-09T19:20:54Z",
     "title": "Merchant Locations"
   },
   "host": "vcjfva6ugh.execute-api.us-west-2.amazonaws.com",
@@ -12,9 +12,6 @@
   "paths": {
     "/api/v1/merchants/by-public-id/{public_id}": {
       "get": {
-        "consumes": [
-          "application/json"
-        ],
         "produces": [
           "application/json"
         ],
@@ -33,15 +30,17 @@
               "$ref": "#/definitions/Empty"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "auth0-token-and-scope-authorizer": []
+          }
+        ]
       },
-      "x-permitted-scopes": "merchants:public:read"
+      "x-permitted-scopes": "read:merchants:public"
     },
     "/api/v1/merchants/by-public-id/{public_id}/locations": {
       "get": {
-        "consumes": [
-          "application/json"
-        ],
         "produces": [
           "application/json"
         ],
@@ -53,16 +52,42 @@
             "type": "string"
           }
         ],
+        "responses": {},
+        "security": [
+          {
+            "auth0-token-and-scope-authorizer": []
+          }
+        ]
+      },
+      "x-permitted-scopes": "read:locations:public"
+    },
+    "/auth0-client-credentials-authorizer": {
+      "x-amazon-apigateway-any-method": {
         "responses": {
           "200": {
-            "description": "200 response",
-            "schema": {
-              "$ref": "#/definitions/Empty"
-            }
+            "description": "200 response"
           }
-        }
-      },
-      "x-permitted-scopes": "locations:public:read"
+        },
+        "security": [
+          {
+            "sigv4": []
+          }
+        ]
+      }
+    }
+  },
+  "securityDefinitions": {
+    "auth0-token-and-scope-authorizer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "x-amazon-apigateway-authtype": "custom"
+    },
+    "sigv4": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "x-amazon-apigateway-authtype": "awsSigv4"
     }
   },
   "definitions": {
