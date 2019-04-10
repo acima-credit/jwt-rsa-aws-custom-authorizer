@@ -1,6 +1,15 @@
 # ATTN
 While this is technically a fork of Auth0's example, we may want to rethink that or have Github set our fork as the default PR target, per this StackOverflow thread: https://us-west-2.console.aws.amazon.com/apigateway/home?region=us-west-2#/apis/vcjfva6ugh/resources/qf1iybecdh
 
+# Preparing For Deployment
+Lambda expects a flat .zip file which it can extract and have top-level access to the index.js file. In order to do this on the command line, from within the project root, create a `/deployment` directory and then run this:
+```
+cp -r {.env,lib.js,index.js,swagger.json,node_modules} deployment
+cd deployment; zip -r "../deployment.zip" .; cd ..;
+```
+The `node_modules` folder must be included in the distribution in order for Lambda to have access to the libraries.
+
+The resulting `deployment.zip` file can be uploaded to Lambda.
 
 # AWS API Gateway Custom Authorizer for RS256 JWTs
 
