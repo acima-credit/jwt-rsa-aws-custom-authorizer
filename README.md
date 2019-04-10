@@ -1,3 +1,7 @@
+# ATTN
+While this is technically a fork of Auth0's example, we may want to rethink that or have Github set our fork as the default PR target, per this StackOverflow thread: https://us-west-2.console.aws.amazon.com/apigateway/home?region=us-west-2#/apis/vcjfva6ugh/resources/qf1iybecdh
+
+
 # AWS API Gateway Custom Authorizer for RS256 JWTs
 
 An AWS API Gateway [Custom Authorizer](http://docs.aws.amazon.com/apigateway/latest/developerguide/use-custom-authorizer.html) that authorizes API requests by requiring
