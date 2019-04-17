@@ -1,4 +1,9 @@
 require('dotenv').config({ silent: true });
+const _ = require('underscore');
+
+// Load swagger documentation
+var fs = require('fs');
+var swagger = JSON.parse(fs.readFileSync('swagger.json', 'utf8'));
 
 const jwksClient = require('jwks-rsa');
 const jwt = require('jsonwebtoken');
@@ -19,11 +24,8 @@ const getPolicyDocument = (effect, resource) => {
 
 // extract and return the Bearer Token from the Lambda event parameters
 const getToken = (params) => {
-    if (!params.type || params.type !== 'TOKEN') {
-        throw new Error('Expected "event.type" parameter to have value "TOKEN"');
-    }
 
-    const tokenString = params.authorizationToken;
+    const tokenString = params.headers["Authorization"];
     if (!tokenString) {
         throw new Error('Expected "event.authorizationToken" parameter to be set');
     }
@@ -35,18 +37,52 @@ const getToken = (params) => {
     return match[1];
 }
 
+const getPath = (params) => {
+    return params.requestContext.resourcePath;
+}
+
+const permittedScopesForPath = (path) => {
+    const paths = swagger["paths"];
+    const matchedPath = paths[path];
+    if (!matchedPath) {
+        throw new Error("No matching resource path documented.")
+    }
+    const permitted = matchedPath["x-permitted-scopes"];
+    if (!permitted) {
+        throw new Error("No matching scopes for resource path.")
+    }
+    return _.flatten([permitted.split(" ")]);
+}
+
+
+const containsScopes = (inbound, permitted) => {
+    return _.intersection(inbound, permitted).length > 0;
+}
+
+const scopesFromToken = (decoded) => {
+    return _.flatten([decoded.payload.scope.split(" ")]);
+}
+
 const jwtOptions = {
     audience: process.env.AUDIENCE,
     issuer: process.env.TOKEN_ISSUER
 };
 
 module.exports.authenticate = (params) => {
-    console.log(params);
     const token = getToken(params);
+    const path = getPath(params)
+    const permittedScopes = permittedScopesForPath(path);
 
     const decoded = jwt.decode(token, { complete: true });
     if (!decoded || !decoded.header || !decoded.header.kid) {
         throw new Error('invalid token');
+    }
+
+    const jwtScopes = scopesFromToken(decoded);
+
+    // check scopes
+    if (!containsScopes(jwtScopes, permittedScopes)) {
+        throw new Error('invalid access');
     }
 
     const client = jwksClient({
