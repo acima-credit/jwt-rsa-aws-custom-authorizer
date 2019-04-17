@@ -24,9 +24,6 @@ const getPolicyDocument = (effect, resource) => {
 
 // extract and return the Bearer Token from the Lambda event parameters
 const getToken = (params) => {
-    //    if (!params.type || params.type !== 'TOKEN') {
-    //        throw new Error('Expected "event.type" parameter to have value "TOKEN"');
-    //    }
 
     const tokenString = params.headers["Authorization"];
     if (!tokenString) {
@@ -72,8 +69,6 @@ const jwtOptions = {
 };
 
 module.exports.authenticate = (params) => {
-    console.log(params);
-
     const token = getToken(params);
     const path = getPath(params)
     const permittedScopes = permittedScopesForPath(path);
@@ -85,10 +80,6 @@ module.exports.authenticate = (params) => {
 
     const jwtScopes = scopesFromToken(decoded);
 
-    console.log("Passed:");
-    console.log(jwtScopes);
-    console.log("Permitted:");
-    console.log(permittedScopes);
     // check scopes
     if (!containsScopes(jwtScopes, permittedScopes)) {
         throw new Error('invalid access');
