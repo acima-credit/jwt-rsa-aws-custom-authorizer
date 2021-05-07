@@ -16,7 +16,7 @@
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^8.2.1",
     "jwks-rsa": "^1.1.1",
-    "underscore": "^1.9.1"
+    "underscore": "^1.12.1"
   },
   "devDependencies": {
     "aws-sdk": "^2.2.48",
